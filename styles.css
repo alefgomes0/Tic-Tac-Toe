@@ -1,0 +1,38 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #131212;
+  color: #fafafa;
+}
+
+h1 {
+  text-align: center;
+}
+
+.page-wrapper {
+  display: grid;
+  justify-content: center;
+  align-items: center;
+}
+
+.board {
+  display: grid;
+  width: 600px;
+  height: 600px;
+  border: 2px solid #d32222;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+}
+
+.cell {
+  display: grid;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid #fff;
+  font-size: 100px;
+}
