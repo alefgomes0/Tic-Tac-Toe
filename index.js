@@ -26,18 +26,29 @@ const gameBoard = (() => {
 
 const createPlayer = (board) => {
   const player = {
+    set symbol(symbol) {
+      this._symbol = symbol;
+    },
+    get symbol() {
+      return this._symbol;
+    },
     score: 0,
     updateScore() {
       this.score++;
     },
-    markBoard: board,
+    markBoard(index) {
+      if (board[index] !== ' ') return;
+      board[index] = this.symbol;
+      gameBoard.updateBoard();
+    },
   };
   return player;
 };
 
 const player1 = createPlayer(gameBoard.board);
+player1.symbol = 'X';
 const player2 = createPlayer(gameBoard.board);
+player2.symbol = 'O';
 
-player1.markBoard[1] = 'X';
-player2.markBoard[gameBoard.board.length - 1] = 'O';
-gameBoard.updateBoard();
+player1.markBoard(2);
+player2.markBoard(5);
