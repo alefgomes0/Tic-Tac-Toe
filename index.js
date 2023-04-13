@@ -27,6 +27,7 @@ const gameBoard = (() => {
 
 const controlGame = (() => {
   let lastPlayed = 'O';
+
   function decidePlayer() {
     if (lastPlayed === 'O') {
       lastPlayed = 'X';
@@ -36,20 +37,28 @@ const controlGame = (() => {
       return 'O';
     }
   }
+
   function checkIfDraw() {
     for (let i = 0; i < 9; i++) {
-      if (gameBoard.board === ' ') return false;
+      if (gameBoard.board[i] === ' ') return false;
     }
     console.log('DRAW');
     return true;
   }
-  function startGame() {
+
+  function startGame(player) {
     const checker = checkIfDraw();
     if (checker === true) return;
-    createPlayer.markBoard();
+
+    player.markBoard(() => {
+      // call startGame recursively after player has made their move
+      startGame(player);
+    });
   }
-  return {decidePlayer, startGame};
+
+  return {decidePlayer, checkIfDraw, startGame};
 })();
+
 
 const createPlayer = (board, controlGame) => {
   const player = {
@@ -71,6 +80,7 @@ const createPlayer = (board, controlGame) => {
           const clickedCell = Number(event.target.id);
           board[clickedCell] = controlGame.decidePlayer();
           gameBoard.updateBoard();
+          controlGame.checkIfDraw();
           return;
         });
       });
@@ -85,4 +95,4 @@ player1.symbol = 'X';
 const player2 = createPlayer(gameBoard.board, controlGame);
 player2.symbol = 'O';
 
-player1.markBoard();
+controlGame.startGame(player1);
