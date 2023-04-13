@@ -10,6 +10,7 @@ const gameBoard = (() => {
         cell = document.createElement('div');
         container.appendChild(cell);
         cell.classList.add(`cell`, `cell${i * 3 + j}`);
+        cell.setAttribute('id', `${i * 3 + j}`);
       }
     }
   }
@@ -24,7 +25,33 @@ const gameBoard = (() => {
   return {board, updateBoard};
 })();
 
-const createPlayer = (board) => {
+const controlGame = (() => {
+  let lastPlayed = 'O';
+  function decidePlayer() {
+    if (lastPlayed === 'O') {
+      lastPlayed = 'X';
+      return 'X';
+    } else {
+      lastPlayed = 'O';
+      return 'O';
+    }
+  }
+  function checkIfDraw() {
+    for (let i = 0; i < 9; i++) {
+      if (gameBoard.board === ' ') return false;
+    }
+    console.log('DRAW');
+    return true;
+  }
+  function startGame() {
+    const checker = checkIfDraw();
+    if (checker === true) return;
+    createPlayer.markBoard();
+  }
+  return {decidePlayer, startGame};
+})();
+
+const createPlayer = (board, controlGame) => {
   const player = {
     set symbol(symbol) {
       this._symbol = symbol;
@@ -36,19 +63,26 @@ const createPlayer = (board) => {
     updateScore() {
       this.score++;
     },
-    markBoard(index) {
-      if (board[index] !== ' ') return;
-      board[index] = this.symbol;
-      gameBoard.updateBoard();
+    markBoard() {
+      const cells = document.querySelectorAll('.cell');
+      cells.forEach((cell) => {
+        cell.addEventListener('click', (event) => {
+          if (event.target.textContent !== ' ') return;
+          const clickedCell = Number(event.target.id);
+          board[clickedCell] = controlGame.decidePlayer();
+          gameBoard.updateBoard();
+          return;
+        });
+      });
     },
   };
   return player;
 };
 
-const player1 = createPlayer(gameBoard.board);
+
+const player1 = createPlayer(gameBoard.board, controlGame);
 player1.symbol = 'X';
-const player2 = createPlayer(gameBoard.board);
+const player2 = createPlayer(gameBoard.board, controlGame);
 player2.symbol = 'O';
 
-player1.markBoard(2);
-player2.markBoard(5);
+player1.markBoard();
