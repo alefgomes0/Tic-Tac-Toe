@@ -11,10 +11,32 @@ const gameBoard = (() => {
         container.appendChild(cell);
         cell.classList.add(`cell`, `cell${i * 3 + j}`);
         cell.setAttribute('id', `${i * 3 + j}`);
+
+        if (i < 1) cell.classList.add('row0');
+        else if (i > 0 && i < 2) cell.classList.add('row1');
+        else cell.classList.add('row2');
+
+        if (cell.id == 0 || cell.id == 3 || cell.id == 6) {
+          cell.classList.add('column0');
+        };
+        if (cell.id == 1 || cell.id == 4 || cell.id == 7) {
+          cell.classList.add('column1');
+        };
+        if (cell.id == 2 || cell.id == 5 || cell.id == 8) {
+          cell.classList.add('column2');
+        };
+        
+        if (cell.id == 0 || cell.id == 4 || cell.id == 8) {
+          cell.classList.add('diagonal0');
+        }
+        if (cell.id == 2 || cell.id == 4 || cell.id == 6) {
+          cell.classList.add('diagonal1');
+        }
       }
-    }
-  }
+    };
+  };
   drawBoard();
+
   function updateBoard() {
     for (let i = 0; i < 9; i++) {
       document.querySelector(`.cell${i}`).textContent = board[i];
@@ -45,18 +67,35 @@ const controlGame = (() => {
     console.log('DRAW');
     return true;
   }
-
+  function checkIfWinner() {
+    const fatherArray = [
+      Array.from(document.querySelectorAll('.row0')),
+      Array.from(document.querySelectorAll('.row1')),
+      Array.from(document.querySelectorAll('.row2')),
+      Array.from(document.querySelectorAll('.column0')),
+      Array.from(document.querySelectorAll('.column1')),
+      Array.from(document.querySelectorAll('.column2')),
+      Array.from(document.querySelectorAll('.diagonal0')),
+      Array.from(document.querySelectorAll('.diagonal1')),
+    ];
+    for (let i = 0; i < fatherArray.length; i++) {
+      const expectedContent = fatherArray[i][0].textContent;
+      const allHave = fatherArray[i].every(
+          (square) => square.textContent === expectedContent &&
+          expectedContent !== ' ');
+      if (allHave) {
+        console.log(`WINNER: ${expectedContent}`);
+        return true;
+      }
+    }
+    return false;
+  }
   function startGame(player) {
-    const checker = checkIfDraw();
-    if (checker === true) return;
-
     player.markBoard(() => {
-      // call startGame recursively after player has made their move
-      startGame(player);
     });
   }
 
-  return {decidePlayer, checkIfDraw, startGame};
+  return {decidePlayer, checkIfDraw, checkIfWinner, startGame};
 })();
 
 
@@ -80,6 +119,7 @@ const createPlayer = (board, controlGame) => {
           const clickedCell = Number(event.target.id);
           board[clickedCell] = controlGame.decidePlayer();
           gameBoard.updateBoard();
+          controlGame.checkIfWinner();
           controlGame.checkIfDraw();
           return;
         });
