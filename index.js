@@ -104,15 +104,23 @@ const controlGame = (() => {
     return false;
   }
 
+  let executedOnce;
+
   function defineWinner(somePlayer, winnerSymbol) {
-    if (somePlayer.symbol == winnerSymbol) {
+    if (somePlayer.symbol == winnerSymbol && executedOnce !== true) {
+      executedOnce = true;
       player1.updateScore();
-      console.log('PLAYER 1 WINS');
+      displayScores.winningMessage('Player 1');
     }
-    else {
+    else if (somePlayer.symbol != winnerSymbol && executedOnce !== true) {
+      executedOnce = true;
       player2.updateScore();
-      console.log('PLAYER 2 WINS');
+      displayScores.winningMessage('Player 2');
     };
+
+    setTimeout(function() {
+      window.location.reload();
+    }, 5000);
   };
 
 
@@ -136,7 +144,7 @@ const controlGame = (() => {
 })();
 
 
-const createPlayer = (board, controlGame) => {
+const createPlayer = (board, controlGame, playerNumber) => {
   const player = {
     set symbol(symbol) {
       this._symbol = symbol;
@@ -146,7 +154,11 @@ const createPlayer = (board, controlGame) => {
       return this._symbol;
     },
 
-    score: 0,
+    score: sessionStorage.getItem(`player${playerNumber}Score`) || 0,
+
+    getPlayerNumber() {
+      return playerNumber;
+    },
 
     getPlayerScore() {
       return this.score;
@@ -154,6 +166,7 @@ const createPlayer = (board, controlGame) => {
 
     updateScore() {
       this.score++;
+      sessionStorage.setItem(`player${playerNumber}Score`, this.score);
     },
 
     markBoard() {
@@ -173,13 +186,21 @@ const createPlayer = (board, controlGame) => {
 };
 
 
-const player1 = createPlayer(gameBoard.board, controlGame);
+const player1 = createPlayer(gameBoard.board, controlGame, 1);
 player1.symbol = 'X';
-const player2 = createPlayer(gameBoard.board, controlGame);
+const player2 = createPlayer(gameBoard.board, controlGame, 2);
 player2.symbol = 'O';
+
+// Reload players' scores from sessionStorage
+player1.score = sessionStorage.getItem('player1Score') || 0;
+player2.score = sessionStorage.getItem('player2Score') || 0;
 
 
 const displayScores = (() => {
+  function numberOfRounds() {
+    // ...
+  }
+
   function tieScore() {
     const tieScore = document.querySelector('.score-tie');
     tieScore.textContent = controlGame.getDrawNumber();
@@ -194,10 +215,14 @@ const displayScores = (() => {
   }
   playerScore();
 
-  return {tieScore, playerScore};
+  function winningMessage(thatPlayer) {
+    const winnerMessage = document.querySelector('.winner-message');
+    winnerMessage.textContent = `${thatPlayer} wins the round!`;
+    winnerMessage.style.display = 'inline';
+  }
+
+  return {tieScore, playerScore, winningMessage};
 })();
 
-const playerOneScore = sessionStorage.setItem('playerOneScore',
-    player1.getPlayerScore());
 
 controlGame.startGame(player1);
