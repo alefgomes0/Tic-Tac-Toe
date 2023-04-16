@@ -25,7 +25,6 @@ const gameBoard = (() => {
         if (cell.id == 2 || cell.id == 5 || cell.id == 8) {
           cell.classList.add('column2');
         };
-        
         if (cell.id == 0 || cell.id == 4 || cell.id == 8) {
           cell.classList.add('diagonal0');
         }
@@ -44,12 +43,20 @@ const gameBoard = (() => {
   }
   updateBoard();
 
+  function resetGame() {
+    const resetButton = document.querySelector('.refresh-container');
+    resetButton.addEventListener('click', () => {
+      location.reload();
+    });
+  }
+  resetGame();
+
   return {board, updateBoard};
 })();
 
+
 const controlGame = (() => {
   let lastPlayed = 'O';
-
   function decidePlayer() {
     if (lastPlayed === 'O') {
       lastPlayed = 'X';
@@ -60,13 +67,21 @@ const controlGame = (() => {
     }
   }
 
+  let draw = 0;
   function checkIfDraw() {
     for (let i = 0; i < 9; i++) {
       if (gameBoard.board[i] === ' ') return false;
     }
+
     console.log('DRAW');
+    draw++;
     return true;
   }
+
+  function getDrawNumber() {
+    return draw;
+  }
+
   function checkIfWinner() {
     const fatherArray = [
       Array.from(document.querySelectorAll('.row0')),
@@ -78,24 +93,46 @@ const controlGame = (() => {
       Array.from(document.querySelectorAll('.diagonal0')),
       Array.from(document.querySelectorAll('.diagonal1')),
     ];
+
     for (let i = 0; i < fatherArray.length; i++) {
       const expectedContent = fatherArray[i][0].textContent;
       const allHave = fatherArray[i].every(
           (square) => square.textContent === expectedContent &&
           expectedContent !== ' ');
-      if (allHave) {
-        console.log(`WINNER: ${expectedContent}`);
-        return true;
-      }
+      if (allHave) return expectedContent;
     }
     return false;
   }
+
+  function defineWinner(somePlayer, winnerSymbol) {
+    if (somePlayer.symbol == winnerSymbol) {
+      player1.updateScore();
+      console.log('PLAYER 1 WINS');
+    }
+    else {
+      player2.updateScore();
+      console.log('PLAYER 2 WINS');
+    };
+  };
+
+
   function startGame(player) {
-    player.markBoard(() => {
-    });
+    gameBoard.updateBoard();
+    const winner = controlGame.checkIfWinner();
+    if (winner) {
+      controlGame.defineWinner(player, winner);
+      displayScores.playerScore();
+      return;
+    }
+    if (controlGame.checkIfDraw()) {
+      displayScores.tieScore();
+      return;
+    }
+    player.markBoard();
   }
 
-  return {decidePlayer, checkIfDraw, checkIfWinner, startGame};
+  return {decidePlayer, checkIfDraw, checkIfWinner, defineWinner,
+    startGame, getDrawNumber};
 })();
 
 
@@ -104,13 +141,21 @@ const createPlayer = (board, controlGame) => {
     set symbol(symbol) {
       this._symbol = symbol;
     },
+
     get symbol() {
       return this._symbol;
     },
+
     score: 0,
+
+    getPlayerScore() {
+      return this.score;
+    },
+
     updateScore() {
       this.score++;
     },
+
     markBoard() {
       const cells = document.querySelectorAll('.cell');
       cells.forEach((cell) => {
@@ -118,14 +163,12 @@ const createPlayer = (board, controlGame) => {
           if (event.target.textContent !== ' ') return;
           const clickedCell = Number(event.target.id);
           board[clickedCell] = controlGame.decidePlayer();
-          gameBoard.updateBoard();
-          controlGame.checkIfWinner();
-          controlGame.checkIfDraw();
-          return;
+          controlGame.startGame(player);
         });
       });
     },
   };
+
   return player;
 };
 
@@ -134,5 +177,27 @@ const player1 = createPlayer(gameBoard.board, controlGame);
 player1.symbol = 'X';
 const player2 = createPlayer(gameBoard.board, controlGame);
 player2.symbol = 'O';
+
+
+const displayScores = (() => {
+  function tieScore() {
+    const tieScore = document.querySelector('.score-tie');
+    tieScore.textContent = controlGame.getDrawNumber();
+  }
+  tieScore();
+
+  function playerScore() {
+    const p1Score = document.querySelector('.score-1');
+    const p2Score = document.querySelector('.score-2');
+    p1Score.textContent = player1.getPlayerScore();
+    p2Score.textContent = player2.getPlayerScore();
+  }
+  playerScore();
+
+  return {tieScore, playerScore};
+})();
+
+const playerOneScore = sessionStorage.setItem('playerOneScore',
+    player1.getPlayerScore());
 
 controlGame.startGame(player1);
