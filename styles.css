@@ -79,9 +79,9 @@ h1 {
 }
 
 .button-container {
-  display: flex;
-  justify-content: center;
+  display: grid;
   gap: 15px;
+  grid-template-columns: 1fr 1fr 1fr;
   grid-column: 2 / 3;
 }
 
@@ -90,8 +90,6 @@ h1 {
   grid-template-rows: 1fr 1fr;
   justify-content: center;
   align-items: center;
-  width: clamp(80px, 200px, 400px);
-  height: clamp(40px, 100px, 200px);
   border-radius: 8px;
 }
 
@@ -142,13 +140,75 @@ select:focus {
 }
 
 .winner-message {
-  display: none;
+  display: inline;
   grid-column: 3 / 4;
   align-self: start;
-  padding-top: 55px;
   color: rgb(207, 85, 48);
   margin: 0;
 }
+
+.round-over {
+  display: none;
+  flex-direction: column;
+  align-self: start;
+  margin-top: 65px;
+  gap: 25px;
+}
+
+.round-over > * {
+  margin: 0;
+}
+
+.next-round {
+  width: 60px;
+  height: 30px;
+  border-radius: 8px;
+  cursor: pointer;
+  background-color: #56A969;
+}
+
+.next-round:hover {
+  background-color: #6fdd89;
+}
+
+.blur {
+  display: none;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  background-color: rgba(255, 255, 255, 0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+}
+
+.center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: rgb(207, 85, 48);
+} 
+
+.play-again,
+.cancel {
+  width: 90px;
+  height: 35px;
+  padding: 0px 9px;
+  color: #111827;
+  background-color: #A99256;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.play-again:hover,
+.cancel:hover {
+  background-color: #e5ce91;
+}
+
 
 @media(max-width: 1000px) {
   .board {

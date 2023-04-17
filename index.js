@@ -110,17 +110,19 @@ const controlGame = (() => {
     if (somePlayer.symbol == winnerSymbol && executedOnce !== true) {
       executedOnce = true;
       player1.updateScore();
-      displayScores.winningMessage('Player 1');
-    }
-    else if (somePlayer.symbol != winnerSymbol && executedOnce !== true) {
+      displayScores.winRoundMessage('Player 1');
+    } else if (somePlayer.symbol != winnerSymbol && executedOnce !== true) {
       executedOnce = true;
       player2.updateScore();
-      displayScores.winningMessage('Player 2');
+      displayScores.winRoundMessage('Player 2');
     };
 
-    setTimeout(function() {
-      window.location.reload();
-    }, 5000);
+    const isGameOver = displayScores.winGameMessage();
+    if ( isGameOver === false) {
+      setTimeout(function() {
+        window.location.reload();
+      }, 5000);
+    }
   };
 
 
@@ -191,15 +193,27 @@ player1.symbol = 'X';
 const player2 = createPlayer(gameBoard.board, controlGame, 2);
 player2.symbol = 'O';
 
-// Reload players' scores from sessionStorage
-player1.score = sessionStorage.getItem('player1Score') || 0;
-player2.score = sessionStorage.getItem('player2Score') || 0;
-
 
 const displayScores = (() => {
-  function numberOfRounds() {
-    // ...
+  function getNumberOfRounds() {
+    const selectElement = document.getElementById('rounds');
+    selectElement.addEventListener('change', () => {
+      sessionStorage.setItem('rounds', selectElement.value);
+      sessionStorage.setItem(`player1Score`, 0);
+      sessionStorage.setItem(`player2Score`, 0);
+      window.location.reload();
+    });
   }
+  getNumberOfRounds();
+
+  function showNumberOfRounds() {
+    const userSelected = sessionStorage.getItem('rounds');
+    const dropDownOptions = Array.from(document.querySelectorAll('option'));
+    dropDownOptions.forEach((option) => {
+      if (option.value == userSelected) option.selected = true;
+    });
+  }
+  showNumberOfRounds();
 
   function tieScore() {
     const tieScore = document.querySelector('.score-tie');
@@ -215,14 +229,59 @@ const displayScores = (() => {
   }
   playerScore();
 
-  function winningMessage(thatPlayer) {
+  function playNexRound() {
+    const nextRound = document.querySelector('.next-round');
+    nextRound.addEventListener('click', () => {
+      window.location.reload();
+    });
+  }
+  playNexRound();
+
+  function winRoundMessage(thatPlayer) {
+    const roundOver = document.querySelector('.round-over');
     const winnerMessage = document.querySelector('.winner-message');
     winnerMessage.textContent = `${thatPlayer} wins the round!`;
-    winnerMessage.style.display = 'inline';
+    roundOver.style.display = 'flex';
   }
 
-  return {tieScore, playerScore, winningMessage};
+  function winGameMessage() {
+    const roundNumber = sessionStorage.getItem('rounds');
+    let winner = false;
+    if (player1.score == roundNumber) winner = 'Player 1';
+    else if (player2.score == roundNumber) winner = 'Player 2';
+
+    if (winner) {
+      const blur = document.querySelector('.blur');
+      const wonTheGame = document.querySelector('.won-game');
+      wonTheGame.textContent = `${winner} won the game!`;
+      blur.style.display = 'block';
+    }
+
+    return winner;
+  }
+  winGameMessage();
+
+  function gameOverButtons() {
+    const playAgain = document.querySelector('.play-again');
+    const cancel = document.querySelector('.cancel');
+    const blur = document.querySelector('.blur');
+
+    playAgain.addEventListener('click', () => {
+      blur.style.display = 'none';
+      sessionStorage.setItem('rounds', 3);
+      sessionStorage.setItem(`player1Score`, 0);
+      sessionStorage.setItem(`player2Score`, 0);
+      window.location.reload();
+    });
+    cancel.addEventListener('click', () => {
+      blur.style.display = 'none';
+    });
+  }
+  gameOverButtons();
+
+  return {tieScore, playerScore, winRoundMessage, winGameMessage};
 })();
 
 
 controlGame.startGame(player1);
+
